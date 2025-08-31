@@ -2,6 +2,4 @@
 
 #include "core/version.hpp"
 
-TEST(Version, StringPresent) {
-  ASSERT_STRNE(core::version(), "");
-}
+TEST(Version, StringPresent) { ASSERT_STRNE(core::version(), ""); }
