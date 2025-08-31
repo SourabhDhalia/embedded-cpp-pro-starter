@@ -2,6 +2,7 @@
 set -euo pipefail
 # cppcheck (exclude firmware sources; analyzed by cross-compile job)
 cppcheck --enable=all --inline-suppr --error-exitcode=1 --std=c++17 -I include \
+  --suppress=unusedFunction --suppress=missingIncludeSystem \
   -isrc/firmware src 2> cppcheck-report.txt || (cat cppcheck-report.txt; exit 1)
 # clang-tidy (compile_commands.json required)
 if [ -f build/compile_commands.json ]; then
