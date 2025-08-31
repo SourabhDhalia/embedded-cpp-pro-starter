@@ -18,16 +18,23 @@ if [[ -z "${REPO_SLUG}" ]]; then
     echo "Origin remote not configured" >&2
     exit 1
   fi
-  # git@github.com:owner/repo.git
-  if [[ "${REPO_URL}" =~ ^git@github.com:(.*)\.git$ ]]; then
-    REPO_SLUG="${BASH_REMATCH[1]}"
-  # https://github.com/owner/repo or https://github.com/owner/repo.git
-  elif [[ "${REPO_URL}" =~ ^https://github.com/([^/]+/[^/]+)(?:\.git)?$ ]]; then
-    REPO_SLUG="${BASH_REMATCH[1]}"
-  else
-    echo "Unsupported remote URL: ${REPO_URL}" >&2
-    exit 1
-  fi
+  # Normalize by stripping protocol/user and trailing .git
+  case "${REPO_URL}" in
+    git@github.com:*)
+      REPO_SLUG="${REPO_URL#git@github.com:}"
+      ;;
+    https://github.com/*)
+      REPO_SLUG="${REPO_URL#https://github.com/}"
+      ;;
+    http://github.com/*)
+      REPO_SLUG="${REPO_URL#http://github.com/}"
+      ;;
+    *)
+      echo "Unsupported remote URL: ${REPO_URL}" >&2
+      exit 1
+      ;;
+  esac
+  REPO_SLUG="${REPO_SLUG%.git}"
 fi
 
 WIKI_URL="https://github.com/${REPO_SLUG}.wiki.git"
