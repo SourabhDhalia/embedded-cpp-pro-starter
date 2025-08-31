@@ -4,6 +4,7 @@
 #include <string>
 
 namespace core {
+
 class Logger {
  public:
   virtual ~Logger() = default;
@@ -13,5 +14,5 @@ class Logger {
 
 Logger& default_logger();
 void set_default_logger(Logger*);
-}
 
+}  // namespace core

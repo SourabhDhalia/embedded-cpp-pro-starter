@@ -16,5 +16,4 @@ class GPIO {
 // Factory for platform-specific GPIO; on host returns a stub.
 GPIO* make_gpio(int port, int pin, GPIOMode mode);
 
-}
-
+}  // namespace hal

@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
+#include <memory>
+
 #include "hal/gpio.hpp"
+
 TEST(GPIO, HostStubToggles) {
   std::unique_ptr<hal::GPIO> g(hal::make_gpio(0, 1, hal::GPIOMode::Output));
   g->write(true);
@@ -7,4 +10,3 @@ TEST(GPIO, HostStubToggles) {
   g->write(false);
   EXPECT_FALSE(g->read());
 }
-
