@@ -17,8 +17,8 @@ struct LoggerState {
 };
 
 auto state() -> LoggerState& {
-  static LoggerState s;
-  return s;
+  static LoggerState logger_state;
+  return logger_state;
 }
 
 }  // namespace
@@ -28,8 +28,8 @@ namespace core {
 auto default_logger() -> Logger& { return *state().current; }
 
 auto set_default_logger(Logger* logger) -> void {
-  auto& s = state();
-  s.current = (logger != nullptr) ? logger : &s.fallback;
+  auto& logger_state = state();
+  logger_state.current = (logger != nullptr) ? logger : &logger_state.fallback;
 }
 
 }  // namespace core
