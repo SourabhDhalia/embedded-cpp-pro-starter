@@ -1,0 +1,31 @@
+# Build and tooling
+/build/
+/build-*/*
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+*.map
+*.lst
+*.bin
+*.hex
+*.elf
+*.log
+*.gcda
+*.gcno
+*.gcov
+compile_commands.json
+.vscode/
+.idea/
+.DS_Store
+.cache/
+.clangd/
+
+# Conan/vcpkg
+.conan/
+.vcpkg-root/
+

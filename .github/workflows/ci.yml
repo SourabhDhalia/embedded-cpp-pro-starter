@@ -1,0 +1,74 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-analyze:
+    name: Build/Test/Analyze (${{ matrix.cxx }}-${{ matrix.type }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cxx: [gcc, clang]
+        type: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ clang clang-tidy cppcheck clang-format gcovr
+      - name: Configure
+        env:
+          CXX: ${{ matrix.cxx == 'gcc' && 'g++' || 'clang++' }}
+          CC:  ${{ matrix.cxx == 'gcc' && 'gcc'  || 'clang'   }}
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DBUILD_TESTS=ON
+      - name: Build
+        run: cmake --build build -j
+      - name: Unit tests
+        run: ctest --test-dir build --output-on-failure
+      - name: clang-format check
+        run: |
+          FILES=$(git ls-files '*.c' '*.cpp' '*.h' '*.hpp');
+          if [ -n "$FILES" ]; then clang-format --Werror --dry-run $FILES; fi
+      - name: cppcheck
+        run: |
+          cppcheck --enable=all --inline-suppr --error-exitcode=1 --std=c++17 -I include src 2> cppcheck-report.txt || (cat cppcheck-report.txt; exit 1)
+      - name: clang-tidy
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          FILES=$(git ls-files '*.cpp'); if [ -n "$FILES" ]; then clang-tidy -p build $FILES; fi
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.cxx }}-${{ matrix.type }}
+          path: |
+            build/host_app
+            build/unit_tests
+
+  coverage:
+    name: Coverage (gcc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ gcovr
+      - name: Configure (coverage)
+        env: { CC: gcc, CXX: g++ }
+        run: cmake -S . -B build-cov -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DENABLE_COVERAGE=ON
+      - name: Build
+        run: cmake --build build-cov -j
+      - name: Test
+        run: ctest --test-dir build-cov --output-on-failure
+      - name: Generate coverage report
+        run: |
+          gcovr -r . -e 'tests/.*' --xml-pretty -o build-cov/coverage.xml --html-details build-cov/coverage.html --print-summary
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: build-cov/coverage.*
+

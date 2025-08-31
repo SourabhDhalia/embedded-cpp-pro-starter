@@ -1,0 +1,5 @@
+Checks: '-*,bugprone-*,performance-*,readability-*,modernize-*,cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-owning-memory'
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^(include|src)/'
+FormatStyle: file
+

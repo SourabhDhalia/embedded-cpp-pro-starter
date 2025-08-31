@@ -1,0 +1,9 @@
+PROJECT_NAME = "embedded-cpp-pro-starter"
+OUTPUT_DIRECTORY = docs/output
+GENERATE_LATEX = NO
+RECURSIVE = YES
+INPUT = include src
+QUIET = YES
+FILE_PATTERNS = *.hpp *.h *.cpp
+EXTRACT_ALL = YES
+
