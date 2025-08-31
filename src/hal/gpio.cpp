@@ -8,8 +8,8 @@ namespace {
 
 class StubGPIO : public GPIO {
  public:
-  void write(bool h) override { level_ = h; }
-  bool read() const override { return level_; }
+  auto write(bool high) -> void override { level_ = high; }
+  [[nodiscard]] auto read() const -> bool override { return level_; }
 
  private:
   bool level_ = false;
@@ -17,6 +17,6 @@ class StubGPIO : public GPIO {
 
 }  // namespace
 
-GPIO* make_gpio(int, int, GPIOMode) { return new StubGPIO(); }
+auto make_gpio(int /*port*/, int /*pin*/, GPIOMode /*mode*/) -> GPIO* { return new StubGPIO(); }
 
 }  // namespace hal

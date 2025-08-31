@@ -12,7 +12,7 @@ class Logger {
   virtual void error(const std::string& msg) = 0;
 };
 
-Logger& default_logger();
-void set_default_logger(Logger*);
+auto default_logger() -> Logger&;
+auto set_default_logger(Logger* logger) -> void;
 
 }  // namespace core
