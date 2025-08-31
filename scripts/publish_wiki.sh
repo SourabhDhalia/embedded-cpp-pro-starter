@@ -51,7 +51,20 @@ git config user.email "ci@example.com"
 git config user.name "wiki-publisher"
 git remote add origin "${WIKI_URL}"
 git fetch origin -q || true
-git checkout -B master || git checkout -B main || true
+
+# Detect remote default branch (master/main) and base local branch on it
+BRANCH="master"
+if git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
+  BRANCH="main"
+elif git ls-remote --exit-code --heads origin master >/dev/null 2>&1; then
+  BRANCH="master"
+fi
+
+if git rev-parse --verify "origin/${BRANCH}" >/dev/null 2>&1; then
+  git checkout -B "${BRANCH}" "origin/${BRANCH}"
+else
+  git checkout -B "${BRANCH}"
+fi
 
 # Copy pages
 cp -a "${OLDPWD}/docs/wiki/." .
@@ -68,6 +81,8 @@ if git diff --cached --quiet; then
   echo "No wiki changes"
 else
   git commit -m "docs(wiki): sync from docs/wiki"
+  # Rebase in case remote changed since fetch
+  git pull --rebase origin "${BRANCH}" || true
   git push -u origin HEAD
 fi
 popd >/dev/null
