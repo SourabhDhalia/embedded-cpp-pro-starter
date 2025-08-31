@@ -11,22 +11,23 @@ if [ ! -d docs/wiki ]; then
   exit 1
 fi
 
-REPO_URL=$(git config --get remote.origin.url)
-if [[ -z "${REPO_URL}" ]]; then
-  echo "Origin remote not configured" >&2
-  exit 1
-fi
-
-# Normalize HTTPS URL
-if [[ "${REPO_URL}" =~ ^git@github.com:(.*)\.git$ ]]; then
-  REPO_SLUG="${BASH_REMATCH[1]}"
-  HTTPS_URL="https://github.com/${REPO_SLUG}.git"
-elif [[ "${REPO_URL}" =~ ^https://github.com/(.*)\.git$ ]]; then
-  REPO_SLUG="${BASH_REMATCH[1]}"
-  HTTPS_URL="${REPO_URL}"
-else
-  echo "Unsupported remote URL: ${REPO_URL}" >&2
-  exit 1
+REPO_SLUG="${GITHUB_REPOSITORY:-}"
+if [[ -z "${REPO_SLUG}" ]]; then
+  REPO_URL=$(git config --get remote.origin.url || true)
+  if [[ -z "${REPO_URL}" ]]; then
+    echo "Origin remote not configured" >&2
+    exit 1
+  fi
+  # git@github.com:owner/repo.git
+  if [[ "${REPO_URL}" =~ ^git@github.com:(.*)\.git$ ]]; then
+    REPO_SLUG="${BASH_REMATCH[1]}"
+  # https://github.com/owner/repo or https://github.com/owner/repo.git
+  elif [[ "${REPO_URL}" =~ ^https://github.com/([^/]+/[^/]+)(?:\.git)?$ ]]; then
+    REPO_SLUG="${BASH_REMATCH[1]}"
+  else
+    echo "Unsupported remote URL: ${REPO_URL}" >&2
+    exit 1
+  fi
 fi
 
 WIKI_URL="https://github.com/${REPO_SLUG}.wiki.git"
@@ -65,4 +66,3 @@ fi
 popd >/dev/null
 
 echo "Wiki published"
-
