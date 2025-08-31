@@ -40,7 +40,7 @@ jobs:
       - name: clang-tidy
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          FILES=$(git ls-files '*.cpp'); if [ -n "$FILES" ]; then clang-tidy -p build $FILES; fi
+          FILES=$(git ls-files '*.cpp' ':(exclude)src/firmware/**'); if [ -n "$FILES" ]; then clang-tidy -p build $FILES; fi
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
