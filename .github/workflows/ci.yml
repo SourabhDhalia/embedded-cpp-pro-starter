@@ -36,7 +36,7 @@ jobs:
           if [ -n "$FILES" ]; then clang-format --Werror --dry-run $FILES; fi
       - name: cppcheck
         run: |
-          cppcheck --enable=all --inline-suppr --error-exitcode=1 --std=c++17 -I include src 2> cppcheck-report.txt || (cat cppcheck-report.txt; exit 1)
+          cppcheck --enable=all --inline-suppr --error-exitcode=1 --std=c++17 -I include -isrc/firmware src 2> cppcheck-report.txt || (cat cppcheck-report.txt; exit 1)
       - name: clang-tidy
         run: |
           cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.type }} -DBUILD_TESTS=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
