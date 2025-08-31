@@ -49,6 +49,37 @@ jobs:
             build/host_app
             build/unit_tests
 
+  dev-container:
+    name: Dev Container Build/Test/Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build dev image
+        run: docker build -f Dockerfile.dev -t embedded-dev .
+      - name: Build (host)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
+            embedded-dev bash -lc "scripts/build.sh"
+      - name: Test (host)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
+            embedded-dev bash -lc "scripts/test.sh"
+      - name: clang-format check
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
+            embedded-dev bash -lc 'FILES=$(git ls-files "*.c" "*.cpp" "*.h" "*.hpp"); if [ -n "$FILES" ]; then clang-format --Werror --dry-run $FILES; fi'
+      - name: Static analysis (cppcheck/clang-tidy)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
+            embedded-dev bash -lc "scripts/analyze.sh"
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-container
+          path: |
+            build/host_app
+            build/unit_tests
+
   coverage:
     name: Coverage (gcc)
     runs-on: ubuntu-latest
@@ -72,3 +103,23 @@ jobs:
           name: coverage
           path: build-cov/coverage.*
 
+  cross-compile:
+    name: Cross-compile Core (ARM GCC in dev container)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build dev image
+        run: docker build -f Dockerfile.dev -t embedded-dev .
+      - name: Configure (ARM toolchain)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
+            embedded-dev bash -lc "cmake -S . -B build-arm -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/arm-gcc.cmake -DBUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release"
+      - name: Build core library (ARM)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
+            embedded-dev bash -lc "cmake --build build-arm --target core -j"
+      - name: Upload ARM core library
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-arm
+          path: build-arm/libcore.a
