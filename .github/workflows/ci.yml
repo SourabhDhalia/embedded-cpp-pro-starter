@@ -33,7 +33,7 @@ jobs:
       - name: clang-format check
         run: |
           FILES=$(git ls-files '*.c' '*.cpp' '*.h' '*.hpp');
-          if [ -n "$FILES" ]; then clang-format --Werror --dry-run $FILES; fi
+          if [ -n "$FILES" ]; then clang-format -style=file --Werror --dry-run $FILES; fi
       - name: cppcheck
         run: |
           cppcheck --enable=all --inline-suppr --error-exitcode=1 --std=c++17 -I include \
@@ -69,7 +69,7 @@ jobs:
       - name: clang-format check
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \
-            embedded-dev bash -lc 'FILES=$(git ls-files "*.c" "*.cpp" "*.h" "*.hpp"); if [ -n "$FILES" ]; then clang-format --Werror --dry-run $FILES; fi'
+            embedded-dev bash -lc 'FILES=$(git ls-files "*.c" "*.cpp" "*.h" "*.hpp"); if [ -n "$FILES" ]; then clang-format -style=file --Werror --dry-run $FILES; fi'
       - name: Static analysis (cppcheck/clang-tidy)
         run: |
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace \

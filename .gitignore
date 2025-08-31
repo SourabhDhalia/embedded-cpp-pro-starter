@@ -24,8 +24,8 @@ compile_commands.json
 .DS_Store
 .cache/
 .clangd/
+cppcheck-report.txt
 
 # Conan/vcpkg
 .conan/
 .vcpkg-root/
-
