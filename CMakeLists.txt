@@ -31,6 +31,7 @@ include(GNUInstallDirs)
 
 add_library(core
   src/core/log.cpp
+  src/core/version.cpp
   src/hal/gpio.cpp
 )
 
@@ -70,4 +71,3 @@ if(BUILD_TESTS AND NOT CMAKE_TOOLCHAIN_FILE)
   include(GoogleTest)
   gtest_discover_tests(unit_tests)
 endif()
-
