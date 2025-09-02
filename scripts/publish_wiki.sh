@@ -52,20 +52,25 @@ pushd "${TMP_DIR}" >/dev/null
 git config user.email "ci@example.com"
 git config user.name "wiki-publisher"
 git remote add origin "${WIKI_URL}"
-git fetch origin -q || true
 
-# Detect remote default branch (master/main) and base local branch on it
-BRANCH="master"
-if git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
-  BRANCH="main"
-elif git ls-remote --exit-code --heads origin master >/dev/null 2>&1; then
-  BRANCH="master"
+# Discover remote default branch via symbolic HEAD, then fall back
+REMOTE_DEFAULT=$(git ls-remote --symref origin HEAD 2>/dev/null | awk '/^ref:/{print $2}' | sed 's@refs/heads/@@' || true)
+if [[ -z "${REMOTE_DEFAULT:-}" ]]; then
+  if git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
+    REMOTE_DEFAULT="main"
+  elif git ls-remote --exit-code --heads origin master >/dev/null 2>&1; then
+    REMOTE_DEFAULT="master"
+  else
+    REMOTE_DEFAULT="master"
+  fi
 fi
 
-if git rev-parse --verify "origin/${BRANCH}" >/dev/null 2>&1; then
-  git checkout -B "${BRANCH}" "origin/${BRANCH}"
+# Ensure we have the remote default branch locally, then base our work on it
+git fetch -q origin "refs/heads/${REMOTE_DEFAULT}:refs/remotes/origin/${REMOTE_DEFAULT}" || git fetch -q origin || true
+if git show-ref --verify --quiet "refs/remotes/origin/${REMOTE_DEFAULT}"; then
+  git checkout -B "${REMOTE_DEFAULT}" "refs/remotes/origin/${REMOTE_DEFAULT}"
 else
-  git checkout -B "${BRANCH}"
+  git checkout -B "${REMOTE_DEFAULT}"
 fi
 
 # Copy pages
@@ -83,9 +88,9 @@ if git diff --cached --quiet; then
   echo "No wiki changes"
 else
   git commit -m "docs(wiki): sync from docs/wiki"
-  # Rebase in case remote changed since fetch
-  git pull --rebase origin "${BRANCH}" || true
-  git push -u origin HEAD
+  # Rebase and push explicitly to the discovered default branch
+  git pull --rebase origin "${REMOTE_DEFAULT}" || true
+  git push -u origin "HEAD:${REMOTE_DEFAULT}"
 fi
 popd >/dev/null
 
