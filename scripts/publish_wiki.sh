@@ -14,6 +14,8 @@ fi
 REPO_SLUG="${GITHUB_REPOSITORY:-}"
 if [[ -z "${REPO_SLUG}" ]]; then
   REPO_URL=$(git config --get remote.origin.url || true)
+  # Trim any trailing CR/LF to make case matching reliable
+  REPO_URL=$(printf "%s" "${REPO_URL}" | tr -d '\r\n')
   if [[ -z "${REPO_URL}" ]]; then
     echo "Origin remote not configured" >&2
     exit 1
