@@ -47,31 +47,22 @@ fi
 TMP_DIR=$(mktemp -d)
 trap 'rm -rf "${TMP_DIR}"' EXIT
 
-git init -q "${TMP_DIR}"
-pushd "${TMP_DIR}" >/dev/null
+# Prefer cloning the existing wiki repository (avoids unrelated histories).
+if git clone --depth=1 "${WIKI_URL}" "${TMP_DIR}" >/dev/null 2>&1; then
+  pushd "${TMP_DIR}" >/dev/null
+  CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo master)
+else
+  # Fallback for brand-new wikis: initialize an empty repo
+  git init -q "${TMP_DIR}"
+  pushd "${TMP_DIR}" >/dev/null
+  git remote add origin "${WIKI_URL}"
+  CURRENT_BRANCH=master
+  git checkout -B "${CURRENT_BRANCH}"
+fi
+
+# Identity
 git config user.email "ci@example.com"
 git config user.name "wiki-publisher"
-git remote add origin "${WIKI_URL}"
-
-# Discover remote default branch via symbolic HEAD, then fall back
-REMOTE_DEFAULT=$(git ls-remote --symref origin HEAD 2>/dev/null | awk '/^ref:/{print $2}' | sed 's@refs/heads/@@' || true)
-if [[ -z "${REMOTE_DEFAULT:-}" ]]; then
-  if git ls-remote --exit-code --heads origin main >/dev/null 2>&1; then
-    REMOTE_DEFAULT="main"
-  elif git ls-remote --exit-code --heads origin master >/dev/null 2>&1; then
-    REMOTE_DEFAULT="master"
-  else
-    REMOTE_DEFAULT="master"
-  fi
-fi
-
-# Ensure we have the remote default branch locally, then base our work on it
-git fetch -q origin "refs/heads/${REMOTE_DEFAULT}:refs/remotes/origin/${REMOTE_DEFAULT}" || git fetch -q origin || true
-if git show-ref --verify --quiet "refs/remotes/origin/${REMOTE_DEFAULT}"; then
-  git checkout -B "${REMOTE_DEFAULT}" "refs/remotes/origin/${REMOTE_DEFAULT}"
-else
-  git checkout -B "${REMOTE_DEFAULT}"
-fi
 
 # Copy pages
 cp -a "${OLDPWD}/docs/wiki/." .
@@ -88,9 +79,9 @@ if git diff --cached --quiet; then
   echo "No wiki changes"
 else
   git commit -m "docs(wiki): sync from docs/wiki"
-  # Rebase and push explicitly to the discovered default branch
-  git pull --rebase origin "${REMOTE_DEFAULT}" || true
-  git push -u origin "HEAD:${REMOTE_DEFAULT}"
+  # Ensure we're up to date and push to the current branch
+  git pull --rebase origin "${CURRENT_BRANCH}" || true
+  git push -u origin "HEAD:${CURRENT_BRANCH}"
 fi
 popd >/dev/null
 
