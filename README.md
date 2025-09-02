@@ -28,5 +28,10 @@ cmake --build build-arm -j
 - `scripts/format.sh` / `scripts/analyze.sh`
 - `scripts/coverage.sh` / `scripts/docs.sh`
 
+## Wiki
+Full documentation, architecture notes, CI/CD details, and troubleshooting live in the project Wiki.
+
+- Project Wiki: https://github.com/SourabhDhalia/embedded-cpp-pro-starter/wiki
+
 ## CI/CD
 See `.github/workflows/ci.yml` and `release.yml`.
