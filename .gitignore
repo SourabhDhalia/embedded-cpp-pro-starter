@@ -25,6 +25,7 @@ compile_commands.json
 .cache/
 .clangd/
 cppcheck-report.txt
+embedded-cpp-pro-starter.wiki/
 
 # Conan/vcpkg
 .conan/

@@ -18,4 +18,4 @@ Quick links
 - Security: ./Security.md
 - Contributing: ./Contribution-Guide.md
 
-Note: This wiki is synced from `docs/wiki` in the repo via the Wiki Sync workflow.
+Note: This wiki is synced from `docs/wiki` in the repo via the Wiki Sync workflow. (Sync check)
